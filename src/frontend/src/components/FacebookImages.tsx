@@ -6,6 +6,11 @@ interface FacebookImagesProps {
 
 const images = [
   {
+    title: "भगवान शिव — नंदी, गंगा, कैलाश",
+    src: "/assets/generated/shiv_nandi_ganga_parvat.dim_1080x1080.jpg",
+    filename: "bhagwan_shiv_nandi_ganga.jpg",
+  },
+  {
     title: "ग्रह दोष निवारण उपाय (नई)",
     src: "/assets/generated/grah_dosh_nivaran_new.dim_1080x1080.jpg",
     filename: "grah_dosh_nivaran_new.jpg",
@@ -39,14 +44,12 @@ export function FacebookImages({ onBack }: FacebookImagesProps) {
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold text-yellow-400">
-            📸 Facebook पोस्ट इमेज
-          </h1>
+          <h1 className="text-xl font-bold text-yellow-400">📸 इमेज Gallery</h1>
         </div>
 
         <p className="text-white/70 text-sm mb-6">
           नीचे इमेज को देखें। इमेज पर <strong>लंबे समय तक press</strong> करें (Long Press)
-          → <strong>"Save Image"</strong> चुनें → Gallery से Facebook पर post करें।
+          → <strong>"Save Image"</strong> चुनें → Gallery से share करें।
         </p>
 
         {images.map((img) => (
@@ -86,7 +89,7 @@ export function FacebookImages({ onBack }: FacebookImagesProps) {
               <strong>"Save Image"</strong> या <strong>"Download Image"</strong>{" "}
               पर tap करें
             </li>
-            <li>Gallery में जाकर Facebook पर share करें</li>
+            <li>Gallery में जाकर share करें</li>
           </ol>
         </div>
       </div>
