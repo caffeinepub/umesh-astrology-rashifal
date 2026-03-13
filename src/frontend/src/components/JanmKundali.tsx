@@ -683,6 +683,132 @@ const REMEDIES: Record<
   },
 };
 
+const MAHADASHA_RATNA: Record<
+  string,
+  {
+    ratna: string;
+    ratnaEn: string;
+    dhatu: string;
+    ungli: string;
+    din: string;
+    muhurta: string;
+    wajan: string;
+    mantra: string;
+    labh: string;
+    savdhani: string;
+  }
+> = {
+  सूर्य: {
+    ratna: "माणिक",
+    ratnaEn: "Ruby",
+    dhatu: "सोना",
+    ungli: "अनामिका (Ring Finger)",
+    din: "रविवार",
+    muhurta: "सूर्योदय के 1 घंटे के भीतर",
+    wajan: "3–5 रत्ती",
+    mantra: "ॐ ह्रां ह्रीं ह्रौं सः सूर्याय नमः (108 बार)",
+    labh: "आत्मविश्वास, सरकारी कार्यों में सफलता, स्वास्थ्य लाभ, मान-सम्मान वृद्धि",
+    savdhani: "उच्च रक्तचाप वाले ध्यान रखें; नकली माणिक से बचें",
+  },
+  चंद्र: {
+    ratna: "मोती",
+    ratnaEn: "Pearl",
+    dhatu: "चांदी",
+    ungli: "कनिष्ठिका (Little Finger)",
+    din: "सोमवार",
+    muhurta: "शुक्ल पक्ष सोमवार सूर्योदय काल",
+    wajan: "4–6 रत्ती",
+    mantra: "ॐ श्रां श्रीं श्रौं सः चंद्राय नमः (108 बार)",
+    labh: "मानसिक शांति, माता से सुख, यात्रा लाभ, भावनात्मक स्थिरता",
+    savdhani: "कफ प्रकृति वाले चिकित्सक से परामर्श करें",
+  },
+  मंगल: {
+    ratna: "मूंगा",
+    ratnaEn: "Red Coral",
+    dhatu: "सोना या तांबा",
+    ungli: "अनामिका (Ring Finger)",
+    din: "मंगलवार",
+    muhurta: "मंगलवार सूर्योदय काल",
+    wajan: "6–9 रत्ती",
+    mantra: "ॐ क्रां क्रीं क्रौं सः भौमाय नमः (108 बार)",
+    labh: "साहस, ऊर्जा, भूमि-भवन लाभ, रक्त विकार में सुधार",
+    savdhani: "पित्त प्रकृति वाले सावधान रहें; ज्योतिषी परामर्श अवश्य लें",
+  },
+  राहु: {
+    ratna: "गोमेद",
+    ratnaEn: "Hessonite Garnet",
+    dhatu: "अष्टधातु या चांदी",
+    ungli: "मध्यमा (Middle Finger)",
+    din: "शनिवार",
+    muhurta: "शनिवार संध्या काल",
+    wajan: "6–10 रत्ती",
+    mantra: "ॐ भ्रां भ्रीं भ्रौं सः राहवे नमः (108 बार)",
+    labh: "विदेश यात्रा लाभ, अचानक धन लाभ, मायावी बाधाओं से मुक्ति",
+    savdhani: "ज्योतिषी से पूर्ण परामर्श के बाद ही धारण करें",
+  },
+  गुरु: {
+    ratna: "पुखराज",
+    ratnaEn: "Yellow Sapphire",
+    dhatu: "सोना",
+    ungli: "तर्जनी (Index Finger)",
+    din: "गुरुवार",
+    muhurta: "गुरुवार सूर्योदय काल",
+    wajan: "4–7 रत्ती",
+    mantra: "ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः (108 बार)",
+    labh: "धन-समृद्धि, विवाह सुख, संतान लाभ, शिक्षा में सफलता, गुरु कृपा",
+    savdhani: "पीले पुखराज के साथ नीलम न पहनें",
+  },
+  शनि: {
+    ratna: "नीलम",
+    ratnaEn: "Blue Sapphire",
+    dhatu: "पंचधातु या सोना",
+    ungli: "मध्यमा (Middle Finger)",
+    din: "शनिवार",
+    muhurta: "शनिवार सूर्योदय या संध्या",
+    wajan: "4–6 रत्ती",
+    mantra: "ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः (108 बार)",
+    labh: "करियर स्थिरता, दीर्घकालिक सफलता, न्याय विजय, धन लाभ",
+    savdhani:
+      "⚠️ नीलम अत्यंत शक्तिशाली रत्न है — पहले 3 दिन परखें, ज्योतिषी परामर्श अनिवार्य",
+  },
+  बुध: {
+    ratna: "पन्ना",
+    ratnaEn: "Emerald",
+    dhatu: "सोना",
+    ungli: "कनिष्ठिका (Little Finger)",
+    din: "बुधवार",
+    muhurta: "बुधवार सूर्योदय काल",
+    wajan: "3–5 रत्ती",
+    mantra: "ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः (108 बार)",
+    labh: "बुद्धि-विकास, व्यापार वृद्धि, वाणी में मधुरता, शिक्षा में सफलता",
+    savdhani: "असली पन्ने की पहचान जरूरी; नकली पन्ने से हानि हो सकती है",
+  },
+  शुक्र: {
+    ratna: "हीरा या ओपल",
+    ratnaEn: "Diamond / Opal",
+    dhatu: "सोना या प्लेटिनम",
+    ungli: "मध्यमा (Middle Finger)",
+    din: "शुक्रवार",
+    muhurta: "शुक्रवार सूर्योदय काल",
+    wajan: "0.5–1 रत्ती (हीरा)",
+    mantra: "ॐ द्रां द्रीं द्रौं सः शुक्राय नमः (108 बार)",
+    labh: "वैवाहिक सुख, भौतिक समृद्धि, कला-सौंदर्य, वाहन सुख",
+    savdhani: "हीरा महंगा है; जिरकॉन या व्हाइट सैफायर विकल्प के रूप में पहन सकते हैं",
+  },
+  केतु: {
+    ratna: "लहसुनिया",
+    ratnaEn: "Cat's Eye",
+    dhatu: "अष्टधातु या चांदी",
+    ungli: "मध्यमा (Middle Finger)",
+    din: "मंगलवार",
+    muhurta: "मंगलवार संध्या काल",
+    wajan: "5–8 रत्ती",
+    mantra: "ॐ स्त्रां स्त्रीं स्त्रौं सः केतवे नमः (108 बार)",
+    labh: "आध्यात्मिक उन्नति, दुर्घटना सुरक्षा, अचानक लाभ, तांत्रिक बाधा निवारण",
+    savdhani: "⚠️ ज्योतिषी परामर्श के बाद ही धारण करें; बहुत शक्तिशाली रत्न है",
+  },
+};
+
 const GRAHA_ABBR: Record<string, string> = {
   सूर्य: "सू",
   चंद्र: "च",
@@ -2342,6 +2468,123 @@ export function JanmKundali({ onBack }: Props) {
                     title="अंतर्दशा"
                   />
                 )}
+              </section>
+
+              {/* Section 6: Mahadasha Ratna */}
+              <section
+                className="rounded-2xl p-5 mb-5 no-print"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(5,8,30,0.95), rgba(20,10,50,0.95))",
+                  border: "2px solid rgba(245,215,110,0.5)",
+                  boxShadow: "0 0 30px rgba(245,215,110,0.15)",
+                }}
+              >
+                <h2
+                  className="devanagari text-xl font-bold mb-1"
+                  style={{ color: "#f5d76e" }}
+                >
+                  💎 महादशा अनुसार शुभ रत्न
+                </h2>
+                <p className="devanagari text-white/50 text-sm mb-4">
+                  वर्तमान महादशा:{" "}
+                  <span style={{ color: "#f5d76e", fontWeight: "bold" }}>
+                    {kundali.dashas[kundali.currentMaha].lord}
+                  </span>
+                </p>
+                {(() => {
+                  const lord = kundali.dashas[kundali.currentMaha].lord;
+                  const ratna = MAHADASHA_RATNA[lord];
+                  if (!ratna) return null;
+                  return (
+                    <div className="space-y-3">
+                      <div
+                        className="rounded-xl p-4"
+                        style={{
+                          background: "rgba(245,215,110,0.1)",
+                          border: "1px solid rgba(245,215,110,0.3)",
+                        }}
+                      >
+                        <p
+                          className="devanagari text-2xl font-bold mb-1"
+                          style={{ color: "#f5d76e" }}
+                        >
+                          💎 {ratna.ratna} ({ratna.ratnaEn})
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          {[
+                            ["⚙️ धातु", ratna.dhatu],
+                            ["🖐️ उंगली", ratna.ungli],
+                            ["📅 दिन", ratna.din],
+                            ["🕐 मुहूर्त", ratna.muhurta],
+                            ["⚖️ वजन", ratna.wajan],
+                          ].map(([label, val]) => (
+                            <div
+                              key={label}
+                              className="rounded-lg p-2"
+                              style={{ background: "rgba(255,255,255,0.05)" }}
+                            >
+                              <p className="text-white/50 text-xs">{label}</p>
+                              <p className="devanagari text-white text-sm font-semibold">
+                                {val}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div
+                        className="rounded-xl p-3"
+                        style={{
+                          background: "rgba(255,200,50,0.08)",
+                          border: "1px solid rgba(245,215,110,0.2)",
+                        }}
+                      >
+                        <p className="text-white/60 text-xs mb-1">🕉️ जप मंत्र</p>
+                        <p className="devanagari text-yellow-200 text-sm font-bold">
+                          {ratna.mantra}
+                        </p>
+                      </div>
+                      <div
+                        className="rounded-xl p-3"
+                        style={{
+                          background: "rgba(34,197,94,0.08)",
+                          border: "1px solid rgba(34,197,94,0.2)",
+                        }}
+                      >
+                        <p className="text-green-400 text-xs mb-1">✅ लाभ</p>
+                        <p className="devanagari text-white/90 text-sm">
+                          {ratna.labh}
+                        </p>
+                      </div>
+                      <div
+                        className="rounded-xl p-3"
+                        style={{
+                          background: "rgba(239,68,68,0.08)",
+                          border: "1px solid rgba(239,68,68,0.2)",
+                        }}
+                      >
+                        <p className="text-red-400 text-xs mb-1">⚠️ सावधानी</p>
+                        <p className="devanagari text-white/80 text-sm">
+                          {ratna.savdhani}
+                        </p>
+                      </div>
+                      <a
+                        href={`https://wa.me/919654123331?text=${encodeURIComponent(`नमस्ते उमेश जी, मुझे ${ratna.ratna} (${ratna.ratnaEn}) रत्न परामर्श चाहिए`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-ocid="janmkundali.ratna_whatsapp_button"
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl devanagari font-bold text-sm transition-all hover:scale-105"
+                        style={{
+                          background: "rgba(37,211,102,0.2)",
+                          border: "1px solid rgba(37,211,102,0.5)",
+                          color: "#4ade80",
+                        }}
+                      >
+                        📱 रत्न परामर्श के लिए WhatsApp पर संपर्क करें
+                      </a>
+                    </div>
+                  );
+                })()}
               </section>
 
               {/* Footer in print */}
