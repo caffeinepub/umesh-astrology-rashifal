@@ -292,7 +292,7 @@ export function RashiRatnaAd({ onBack }: RashiRatnaAdProps) {
               className="devanagari text-lg font-bold"
               style={{ color: "#f5d76e" }}
             >
-              🔮 ज्योतिषी उमेश जी — 20+ वर्षों का अनुभव
+              🔮 ज्योतिषी उमेश जी — 25+ वर्षों का अनुभव
             </p>
           </div>
         </div>

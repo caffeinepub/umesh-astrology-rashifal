@@ -14,6 +14,8 @@ interface CardViewProps {
   onDateChange: (date: string) => void;
   onRatnaClick: () => void;
   onKundaliClick: () => void;
+  onFbImagesClick: () => void;
+  onJanmKundaliClick: () => void;
 }
 
 // Daily rotating mantras per rashi (7 mantras, rotates by day of month mod 7)
@@ -131,7 +133,6 @@ const RASHI_MANTRAS: Record<string, string[]> = {
 function getDailyMantra(rashiName: string, dateStr: string): string {
   const mantras = RASHI_MANTRAS[rashiName];
   if (!mantras) return "ॐ नमः शिवाय";
-  // Parse day from DD/MM/YYYY
   const day = Number.parseInt(dateStr.split("/")[0] || "1", 10) || 1;
   return mantras[(day - 1) % mantras.length];
 }
@@ -255,6 +256,8 @@ export function CardView({
   onDateChange,
   onRatnaClick,
   onKundaliClick,
+  onFbImagesClick,
+  onJanmKundaliClick,
 }: CardViewProps) {
   const { data: rashifalList = [], isLoading } =
     useRashifalByDate(selectedDate);
@@ -298,7 +301,7 @@ export function CardView({
         setShareAllStatus("shared");
         setTimeout(() => setShareAllStatus("idle"), 2500);
       } catch {
-        // user cancelled
+        /* user cancelled */
       }
     } else {
       await navigator.clipboard.writeText(text);
@@ -315,7 +318,6 @@ export function CardView({
           "linear-gradient(180deg, #04061a 0%, #080b20 30%, #0d1035 70%, #080b20 100%)",
       }}
     >
-      {/* Background image */}
       <div
         className="fixed inset-0 z-0 opacity-20"
         style={{
@@ -325,14 +327,10 @@ export function CardView({
           backgroundPosition: "center",
         }}
       />
-
       <StarField />
 
-      {/* Main content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
         <header className="text-center mb-10">
-          {/* Top decoration */}
           <div className="flex items-center justify-center gap-3 mb-3">
             <div
               className="h-px flex-1 max-w-24"
@@ -358,12 +356,10 @@ export function CardView({
           >
             जय श्री राम 🙏
           </p>
-
           <h1 className="cinzel text-5xl md:text-6xl font-bold mb-3 gold-shimmer">
             दैनिक राशिफल
           </h1>
 
-          {/* Date display + picker */}
           <div className="flex flex-col items-center gap-3 mb-4">
             <div
               className="inline-block px-8 py-3 rounded-full border"
@@ -398,7 +394,6 @@ export function CardView({
             </div>
           </div>
 
-          {/* Astrologer name */}
           <div className="mb-4">
             <h2
               className="devanagari text-3xl font-bold text-white mb-1"
@@ -411,7 +406,6 @@ export function CardView({
             </p>
           </div>
 
-          {/* Contact info */}
           <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
             <a
               href="https://wa.me/919654123331"
@@ -429,7 +423,6 @@ export function CardView({
               <SiWhatsapp size={18} />
               <span className="font-semibold text-sm">+91 9654123331</span>
             </a>
-
             <a
               href="https://instagram.com/umesh.astrology"
               target="_blank"
@@ -449,8 +442,7 @@ export function CardView({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto mb-4">
-            {/* Kundali Milan Button */}
+          <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto mb-3">
             <button
               type="button"
               onClick={onKundaliClick}
@@ -466,8 +458,6 @@ export function CardView({
             >
               🔯 कुंडली मिलान
             </button>
-
-            {/* Rashi Ratna Button */}
             <button
               type="button"
               onClick={onRatnaClick}
@@ -485,7 +475,44 @@ export function CardView({
             </button>
           </div>
 
-          {/* Decorative bottom */}
+          {/* Janm Kundali Button */}
+          <div className="max-w-lg mx-auto mb-3">
+            <button
+              type="button"
+              onClick={onJanmKundaliClick}
+              data-ocid="janmkundali.banner.button"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl devanagari font-bold text-base transition-all hover:scale-105 active:scale-95"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(147,51,234,0.25), rgba(245,215,110,0.12), rgba(147,51,234,0.25))",
+                border: "1px solid rgba(147,51,234,0.5)",
+                color: "#c084fc",
+                boxShadow: "0 0 20px rgba(147,51,234,0.25)",
+              }}
+            >
+              🪐 जन्म कुंडली — ग्रह दशा व उपाय
+            </button>
+          </div>
+
+          {/* Facebook Images Button */}
+          <div className="max-w-lg mx-auto mb-4">
+            <button
+              type="button"
+              onClick={onFbImagesClick}
+              data-ocid="fbimages.banner.button"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl devanagari font-bold text-base transition-all hover:scale-105 active:scale-95"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(24,119,242,0.25), rgba(24,119,242,0.1))",
+                border: "1px solid rgba(24,119,242,0.5)",
+                color: "#60a5fa",
+                boxShadow: "0 0 20px rgba(24,119,242,0.2)",
+              }}
+            >
+              📸 Facebook पोस्ट इमेज Download करें
+            </button>
+          </div>
+
           <div className="flex items-center justify-center gap-2">
             <div
               className="h-px flex-1 max-w-32"
@@ -505,7 +532,6 @@ export function CardView({
           </div>
         </header>
 
-        {/* Loading state */}
         {isLoading && (
           <div data-ocid="rashifal.loading_state" className="text-center py-8">
             <div className="inline-flex items-center gap-3 text-white/60">
@@ -521,7 +547,6 @@ export function CardView({
           </div>
         )}
 
-        {/* Grid of rashi cards */}
         {!isLoading && (
           <div
             data-ocid="rashifal.list"
@@ -544,7 +569,6 @@ export function CardView({
           </div>
         )}
 
-        {/* Share All Rashifal Button */}
         {!isLoading && (
           <div className="flex justify-center mb-10">
             <button
@@ -584,7 +608,6 @@ export function CardView({
           </div>
         )}
 
-        {/* Footer */}
         <footer className="text-center pb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div
@@ -620,7 +643,6 @@ export function CardView({
         </footer>
       </div>
 
-      {/* Admin floating button */}
       {isAdmin && (
         <Button
           onClick={onAdminClick}

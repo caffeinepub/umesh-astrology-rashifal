@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { AdminPanel } from "./components/AdminPanel";
 import { CardView } from "./components/CardView";
+import { FacebookImages } from "./components/FacebookImages";
+import { JanmKundali } from "./components/JanmKundali";
 import { KundaliMilan } from "./components/KundaliMilan";
 import { RashiRatnaAd } from "./components/RashiRatnaAd";
 
@@ -15,7 +17,13 @@ const queryClient = new QueryClient({
   },
 });
 
-type View = "cards" | "admin" | "ratna" | "kundali";
+type View =
+  | "cards"
+  | "admin"
+  | "ratna"
+  | "kundali"
+  | "fbimages"
+  | "janmkundali";
 
 function AppContent() {
   const [view, setView] = useState<View>("cards");
@@ -35,6 +43,14 @@ function AppContent() {
     return <KundaliMilan onBack={() => setView("cards")} />;
   }
 
+  if (view === "fbimages") {
+    return <FacebookImages onBack={() => setView("cards")} />;
+  }
+
+  if (view === "janmkundali") {
+    return <JanmKundali onBack={() => setView("cards")} />;
+  }
+
   return (
     <CardView
       selectedDate={selectedDate}
@@ -42,6 +58,8 @@ function AppContent() {
       onDateChange={setSelectedDate}
       onRatnaClick={() => setView("ratna")}
       onKundaliClick={() => setView("kundali")}
+      onFbImagesClick={() => setView("fbimages")}
+      onJanmKundaliClick={() => setView("janmkundali")}
     />
   );
 }
