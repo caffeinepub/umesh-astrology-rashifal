@@ -9,7 +9,7 @@ interface RashiCardProps {
   borderColor: string;
   index: number;
   date?: string;
-  luckyColor?: string;
+  luckyMantra?: string;
   luckyNumber?: string;
 }
 
@@ -36,7 +36,7 @@ export function RashiCard({
   borderColor,
   index,
   date,
-  luckyColor,
+  luckyMantra,
   luckyNumber,
 }: RashiCardProps) {
   const displayPrediction =
@@ -44,8 +44,8 @@ export function RashiCard({
 
   const handleShare = async () => {
     const luckyLine =
-      luckyColor || luckyNumber
-        ? `\n🎨 शुभ रंग: ${luckyColor || "-"} | 🔢 शुभ अंक: ${luckyNumber || "-"}`
+      luckyMantra || luckyNumber
+        ? `\n🕉️ शुभ मंत्र: ${luckyMantra || "-"} | 🔢 शुभ अंक: ${luckyNumber || "-"}`
         : "";
     const shareText = `${symbol} ${name} राशिफल${date ? ` - ${date}` : ""}\n\n${displayPrediction}${luckyLine}\n\n✨ ज्योतिषी उमेश जी\n📱 WhatsApp: +91 9654123331\n📸 Instagram: @umesh.astrology`;
 
@@ -125,8 +125,8 @@ export function RashiCard({
           {displayPrediction}
         </p>
 
-        {/* Lucky Color & Number */}
-        {(luckyColor || luckyNumber) && (
+        {/* Lucky Mantra & Number */}
+        {(luckyMantra || luckyNumber) && (
           <>
             <div
               className="w-full h-px mt-3 opacity-30"
@@ -135,10 +135,10 @@ export function RashiCard({
                   "linear-gradient(90deg, transparent, #f5d76e, transparent)",
               }}
             />
-            <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
-              {luckyColor && (
+            <div className="flex flex-col items-center gap-1 mt-2">
+              {luckyMantra && (
                 <span
-                  className="devanagari text-xs px-2 py-1 rounded-full font-semibold"
+                  className="devanagari text-xs px-3 py-1 rounded-full font-semibold text-center w-full"
                   style={{
                     background: "rgba(245,215,110,0.12)",
                     border: "1px solid rgba(245,215,110,0.35)",
@@ -146,7 +146,7 @@ export function RashiCard({
                     textShadow: "0 0 6px rgba(245,215,110,0.4)",
                   }}
                 >
-                  🎨 {luckyColor}
+                  🕉️ {luckyMantra}
                 </span>
               )}
               {luckyNumber && (
@@ -159,7 +159,7 @@ export function RashiCard({
                     textShadow: "0 0 6px rgba(245,215,110,0.4)",
                   }}
                 >
-                  🔢 {luckyNumber}
+                  🔢 शुभ अंक: {luckyNumber}
                 </span>
               )}
             </div>

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings, Share2 } from "lucide-react";
+import { Gem, Settings, Share2 } from "lucide-react";
 import { useState } from "react";
 import { SiInstagram, SiWhatsapp } from "react-icons/si";
 import type { Rashifal } from "../backend.d";
@@ -12,6 +12,128 @@ interface CardViewProps {
   selectedDate: string;
   onAdminClick: () => void;
   onDateChange: (date: string) => void;
+  onRatnaClick: () => void;
+  onKundaliClick: () => void;
+}
+
+// Daily rotating mantras per rashi (7 mantras, rotates by day of month mod 7)
+const RASHI_MANTRAS: Record<string, string[]> = {
+  मेष: [
+    "ॐ भौमाय नमः",
+    "ॐ क्रां क्रीं क्रौं सः भौमाय नमः",
+    "ॐ नमः शिवाय",
+    "ॐ रामाय नमः",
+    "ॐ हनुमते नमः",
+    "ॐ शक्तयै नमः",
+    "ॐ महाकालाय नमः",
+  ],
+  वृषभ: [
+    "ॐ शुक्राय नमः",
+    "ॐ श्रीं ह्रीं श्रीं महालक्ष्म्यै नमः",
+    "ॐ सौम्याय नमः",
+    "ॐ ऐं सरस्वत्यै नमः",
+    "ॐ श्रीं क्लीं महालक्ष्म्यै नमः",
+    "ॐ धनदाय नमः",
+    "ॐ वसुधारायै नमः",
+  ],
+  मिथुन: [
+    "ॐ बुधाय नमः",
+    "ॐ ऐं ह्रीं श्रीं बुधाय नमः",
+    "ॐ सरस्वत्यै नमः",
+    "ॐ गणेशाय नमः",
+    "ॐ विद्यादायिन्यै नमः",
+    "ॐ मेधादेव्यै नमः",
+    "ॐ बुद्धिप्रदाय नमः",
+  ],
+  कर्क: [
+    "ॐ सों सोमाय नमः",
+    "ॐ चन्द्राय नमः",
+    "ॐ श्रीं चन्द्रमसे नमः",
+    "ॐ ह्रीं शिवाय नमः",
+    "ॐ माँ दुर्गाय नमः",
+    "ॐ गौर्यै नमः",
+    "ॐ पार्वत्यै नमः",
+  ],
+  सिंह: [
+    "ॐ ह्रीं सूर्याय नमः",
+    "ॐ घृणि सूर्याय नमः",
+    "ॐ आदित्याय नमः",
+    "ॐ भास्कराय नमः",
+    "ॐ सवित्रे नमः",
+    "ॐ रवये नमः",
+    "ॐ मित्राय नमः",
+  ],
+  कन्या: [
+    "ॐ बुधाय नमः",
+    "ॐ ऐं बुधाय नमः",
+    "ॐ विद्यादायिन्यै नमः",
+    "ॐ सरस्वत्यै नमः",
+    "ॐ क्रीं कालिकायै नमः",
+    "ॐ ह्रीं बुधाय नमः",
+    "ॐ प्रज्ञाप्रदाय नमः",
+  ],
+  तुला: [
+    "ॐ शुक्राय नमः",
+    "ॐ ह्रीं श्रीं शुक्राय नमः",
+    "ॐ लक्ष्म्यै नमः",
+    "ॐ सौंदर्यप्रदाय नमः",
+    "ॐ कमलायै नमः",
+    "ॐ श्रीं महालक्ष्म्यै नमः",
+    "ॐ रम्भायै नमः",
+  ],
+  वृश्चिक: [
+    "ॐ भौमाय नमः",
+    "ॐ क्रां भौमाय नमः",
+    "ॐ अंगारकाय नमः",
+    "ॐ शक्तिप्रदाय नमः",
+    "ॐ महाकालाय नमः",
+    "ॐ रुद्राय नमः",
+    "ॐ भैरवाय नमः",
+  ],
+  धनु: [
+    "ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः",
+    "ॐ बृहस्पतये नमः",
+    "ॐ देवगुरवे नमः",
+    "ॐ ज्ञानप्रदाय नमः",
+    "ॐ विद्याप्रदाय नमः",
+    "ॐ धर्मराजाय नमः",
+    "ॐ त्रिपुरारये नमः",
+  ],
+  मकर: [
+    "ॐ शं शनैश्चराय नमः",
+    "ॐ नीलांजनसमाभासाय नमः",
+    "ॐ शनिदेवाय नमः",
+    "ॐ कर्मफलदाय नमः",
+    "ॐ यमाय नमः",
+    "ॐ धृतिप्रदाय नमः",
+    "ॐ स्थिरत्वप्रदाय नमः",
+  ],
+  कुंभ: [
+    "ॐ शं शनैश्चराय नमः",
+    "ॐ राहवे नमः",
+    "ॐ नवग्रहाय नमः",
+    "ॐ विश्वेश्वराय नमः",
+    "ॐ भवानीशंकराय नमः",
+    "ॐ सर्वसिद्धिप्रदाय नमः",
+    "ॐ ज्ञानेश्वराय नमः",
+  ],
+  मीन: [
+    "ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः",
+    "ॐ केतवे नमः",
+    "ॐ नारायणाय नमः",
+    "ॐ मोक्षप्रदाय नमः",
+    "ॐ विष्णवे नमः",
+    "ॐ शान्तिप्रदाय नमः",
+    "ॐ ब्रह्मणे नमः",
+  ],
+};
+
+function getDailyMantra(rashiName: string, dateStr: string): string {
+  const mantras = RASHI_MANTRAS[rashiName];
+  if (!mantras) return "ॐ नमः शिवाय";
+  // Parse day from DD/MM/YYYY
+  const day = Number.parseInt(dateStr.split("/")[0] || "1", 10) || 1;
+  return mantras[(day - 1) % mantras.length];
 }
 
 const RASHIS = [
@@ -20,7 +142,6 @@ const RASHIS = [
     name: "मेष",
     gradient: "linear-gradient(135deg, #1a0533 0%, #4a0e8f 50%, #2d0a5e 100%)",
     border: "linear-gradient(135deg, #9b59b6, #f5d76e, #9b59b6)",
-    luckyColor: "लाल",
     luckyNumber: "9",
   },
   {
@@ -28,7 +149,6 @@ const RASHIS = [
     name: "वृषभ",
     gradient: "linear-gradient(135deg, #0a2e1a 0%, #1a6e3c 50%, #0f3d22 100%)",
     border: "linear-gradient(135deg, #27ae60, #f5d76e, #27ae60)",
-    luckyColor: "हरा",
     luckyNumber: "6",
   },
   {
@@ -36,7 +156,6 @@ const RASHIS = [
     name: "मिथुन",
     gradient: "linear-gradient(135deg, #0a1e3d 0%, #1a4e8f 50%, #0d2a5e 100%)",
     border: "linear-gradient(135deg, #3498db, #f5d76e, #3498db)",
-    luckyColor: "पीला",
     luckyNumber: "5",
   },
   {
@@ -44,7 +163,6 @@ const RASHIS = [
     name: "कर्क",
     gradient: "linear-gradient(135deg, #2e1a0a 0%, #8f5a1a 50%, #5e3a0f 100%)",
     border: "linear-gradient(135deg, #e67e22, #f5d76e, #e67e22)",
-    luckyColor: "सफेद",
     luckyNumber: "2",
   },
   {
@@ -52,7 +170,6 @@ const RASHIS = [
     name: "सिंह",
     gradient: "linear-gradient(135deg, #2e0a0a 0%, #8f1a1a 50%, #5e0f0f 100%)",
     border: "linear-gradient(135deg, #e74c3c, #f5d76e, #e74c3c)",
-    luckyColor: "सुनहरा",
     luckyNumber: "1",
   },
   {
@@ -60,7 +177,6 @@ const RASHIS = [
     name: "कन्या",
     gradient: "linear-gradient(135deg, #1a2e0a 0%, #4a8f1a 50%, #2d5e0f 100%)",
     border: "linear-gradient(135deg, #8bc34a, #f5d76e, #8bc34a)",
-    luckyColor: "हरा",
     luckyNumber: "3",
   },
   {
@@ -68,7 +184,6 @@ const RASHIS = [
     name: "तुला",
     gradient: "linear-gradient(135deg, #1a1a2e 0%, #4a4a8f 50%, #2d2d5e 100%)",
     border: "linear-gradient(135deg, #7986cb, #f5d76e, #7986cb)",
-    luckyColor: "नीला",
     luckyNumber: "6",
   },
   {
@@ -76,7 +191,6 @@ const RASHIS = [
     name: "वृश्चिक",
     gradient: "linear-gradient(135deg, #1a0a2e 0%, #5a1a7a 50%, #3a0f4e 100%)",
     border: "linear-gradient(135deg, #ab47bc, #f5d76e, #ab47bc)",
-    luckyColor: "लाल",
     luckyNumber: "8",
   },
   {
@@ -84,7 +198,6 @@ const RASHIS = [
     name: "धनु",
     gradient: "linear-gradient(135deg, #1a1a0a 0%, #7a6a0a 50%, #4e430f 100%)",
     border: "linear-gradient(135deg, #ffc107, #f5d76e, #ffc107)",
-    luckyColor: "पीला",
     luckyNumber: "3",
   },
   {
@@ -92,7 +205,6 @@ const RASHIS = [
     name: "मकर",
     gradient: "linear-gradient(135deg, #0a2e2e 0%, #1a6e6e 50%, #0f3d3d 100%)",
     border: "linear-gradient(135deg, #26a69a, #f5d76e, #26a69a)",
-    luckyColor: "काला",
     luckyNumber: "8",
   },
   {
@@ -100,7 +212,6 @@ const RASHIS = [
     name: "कुंभ",
     gradient: "linear-gradient(135deg, #0a1a2e 0%, #1a3a6e 50%, #0f253d 100%)",
     border: "linear-gradient(135deg, #42a5f5, #f5d76e, #42a5f5)",
-    luckyColor: "नीला",
     luckyNumber: "4",
   },
   {
@@ -108,7 +219,6 @@ const RASHIS = [
     name: "मीन",
     gradient: "linear-gradient(135deg, #0a1a2e 0%, #1a5a8f 50%, #3a5e0f 100%)",
     border: "linear-gradient(135deg, #29b6f6, #f5d76e, #29b6f6)",
-    luckyColor: "पीला",
     luckyNumber: "3",
   },
 ];
@@ -143,6 +253,8 @@ export function CardView({
   selectedDate,
   onAdminClick,
   onDateChange,
+  onRatnaClick,
+  onKundaliClick,
 }: CardViewProps) {
   const { data: rashifalList = [], isLoading } =
     useRashifalByDate(selectedDate);
@@ -167,10 +279,9 @@ export function CardView({
         predictionMap[rashi.name] ||
         DEFAULT_PREDICTIONS[rashi.name] ||
         "आज का राशिफल जल्द उपलब्ध होगा।";
+      const mantra = getDailyMantra(rashi.name, selectedDate);
       lines.push(`${rashi.symbol} ${rashi.name}: ${prediction}`);
-      lines.push(
-        `🎨 शुभ रंग: ${rashi.luckyColor} | 🔢 शुभ अंक: ${rashi.luckyNumber}`,
-      );
+      lines.push(`🕉️ शुभ मंत्र: ${mantra} | 🔢 शुभ अंक: ${rashi.luckyNumber}`);
       lines.push("");
     }
     lines.push("✨ ज्योतिषी उमेश जी");
@@ -337,6 +448,43 @@ export function CardView({
             </a>
           </div>
 
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto mb-4">
+            {/* Kundali Milan Button */}
+            <button
+              type="button"
+              onClick={onKundaliClick}
+              data-ocid="kundali.banner.button"
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl devanagari font-bold text-base transition-all hover:scale-105 active:scale-95"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(245,215,110,0.2), rgba(232,184,75,0.1), rgba(245,215,110,0.2))",
+                border: "1px solid rgba(245,215,110,0.5)",
+                color: "#f5d76e",
+                boxShadow: "0 0 20px rgba(245,215,110,0.2)",
+              }}
+            >
+              🔯 कुंडली मिलान
+            </button>
+
+            {/* Rashi Ratna Button */}
+            <button
+              type="button"
+              onClick={onRatnaClick}
+              data-ocid="ratna.banner.button"
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl devanagari font-bold text-base transition-all hover:scale-105 active:scale-95"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(155,89,182,0.25), rgba(245,215,110,0.12), rgba(155,89,182,0.25))",
+                border: "1px solid rgba(245,215,110,0.4)",
+                color: "#f5d76e",
+                boxShadow: "0 0 20px rgba(155,89,182,0.3)",
+              }}
+            >
+              <Gem size={16} /> राशि रत्न उपाय
+            </button>
+          </div>
+
           {/* Decorative bottom */}
           <div className="flex items-center justify-center gap-2">
             <div
@@ -389,7 +537,7 @@ export function CardView({
                 borderColor={rashi.border}
                 index={i + 1}
                 date={displayDate}
-                luckyColor={rashi.luckyColor}
+                luckyMantra={getDailyMantra(rashi.name, selectedDate)}
                 luckyNumber={rashi.luckyNumber}
               />
             ))}

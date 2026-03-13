@@ -1,36 +1,41 @@
-# Umesh Astrology Rashifal Card Generator
+# Umesh Astrology Rashifal
 
 ## Current State
-New project — no existing code.
+App has: daily rashifal cards (12 rashis), admin panel for daily updates, rashi ratna (gemstone remedies) page, sharing features for individual/all rashifal cards.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Daily rashifal (horoscope) for 12 zodiac signs in Hindi
-- Beautiful cosmic/astrology-themed Instagram-ready card UI
-- Date picker to select date for the rashifal
-- Management panel to edit rashifal content per rashi per date
-- Display WhatsApp number +91 9654123331 and Instagram ID umesh.astrology prominently
-- Each rashi card with symbol, name, and detailed Hindi prediction text
-- Share/screenshot-ready layout
+- New "कुंडली मिलान" (Kundali Milan) page accessible via button on main page
+- Input form for Var (Groom) and Vadhu (Bride): name, date of birth, time of birth, place of birth
+- Astrological calculation engine (frontend-only):
+  - Rashi (Moon sign), Nakshatra, Lagna (Ascendant) for each person
+  - Ruling planet, element, gana, varna
+- Guna Milan scoring (36 total gunas across 8 kootas):
+  1. Varna (1 point)
+  2. Vashya (2 points)
+  3. Tara (3 points)
+  4. Yoni (4 points)
+  5. Graha Maitri (5 points)
+  6. Gana (6 points)
+  7. Bhakoot (7 points)
+  8. Nadi (8 points)
+- Result display:
+  - Score out of 36 with compatibility verdict in Hindi
+  - Detailed table showing each koota's score
+  - Full astrological details for Var and Vadhu side-by-side
+  - Mangal Dosha check for both
+  - Overall compatibility recommendation
+- Share report button: generates text summary, uses native share API on mobile, clipboard on desktop
 
 ### Modify
-- N/A
+- App.tsx: Add "kundali" to View type, add navigation button on main CardView
+- CardView.tsx: Add "🔯 कुंडली मिलान" button near the ratna button
 
 ### Remove
-- N/A
+- Nothing removed
 
 ## Implementation Plan
-
-### Backend
-- Store rashifal entries: { date: Text, rashi: Text, prediction: Text }
-- CRUD: createOrUpdateRashifal, getRashifalByDate, getAllDates
-- Seed with sample Hindi predictions for 13/03/2026 for all 12 rashis
-- Authorization: admin role for management panel access
-
-### Frontend
-- Two views: Card View (public Instagram-ready) and Admin Panel
-- Card View: cosmic gradient background, date display, 12 rashi cards in grid with symbols and Hindi text
-- Admin Panel: date picker, text areas for each rashi's prediction, save button
-- Branding: WhatsApp +91 9654123331, Instagram umesh.astrology on every card view
-- Rashi symbols: ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
+1. Create KundaliMilan.tsx component with input form, calculation logic, and results display
+2. Update App.tsx to include kundali view
+3. Update CardView.tsx to add navigation button
