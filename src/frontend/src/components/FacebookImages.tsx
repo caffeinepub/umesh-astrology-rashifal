@@ -6,6 +6,11 @@ interface FacebookImagesProps {
 
 const images = [
   {
+    title: "नवग्रह शांति उपाय",
+    src: "/assets/generated/jyotish_upay_navgrah.dim_1080x1080.jpg",
+    filename: "jyotish_upay_navgrah.jpg",
+  },
+  {
     title: "भगवान शिव — नंदी, गंगा, कैलाश",
     src: "/assets/generated/shiv_nandi_ganga_parvat.dim_1080x1080.jpg",
     filename: "bhagwan_shiv_nandi_ganga.jpg",
