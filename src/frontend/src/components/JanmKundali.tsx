@@ -907,6 +907,21 @@ function NorthIndianChart({
   lagnaIdx: number;
   grahas: GrahaData[];
 }) {
+  const RASHI_SHORT = [
+    "मेष",
+    "वृष",
+    "मिथु",
+    "कर्क",
+    "सिंह",
+    "कन्या",
+    "तुला",
+    "वृश्चि",
+    "धनु",
+    "मकर",
+    "कुंभ",
+    "मीन",
+  ];
+
   // Build house → planets map
   const houseMap: Record<number, string[]> = {};
   for (let i = 1; i <= 12; i++) houseMap[i] = [];
@@ -914,231 +929,211 @@ function NorthIndianChart({
     houseMap[g.house].push(GRAHA_ABBR[g.name] || g.name.slice(0, 2));
   }
 
-  const SIZE = 360;
-  // CELL = 120
+  // 4x4 grid, each cell 100x100, total 400x400
+  // Standard North Indian layout:
+  // Row 0: H12  H1   H2   H3
+  // Row 1: H11  [C]  [C]  H4
+  // Row 2: H10  [C]  [C]  H5
+  // Row 3: H9   H8   H7   H6
+  const S = 400;
+  const C = 100; // cell size
 
-  // House polygon definitions (correct North Indian layout)
-  // 3x3 grid, center cell is decorative, corner cells split diagonally
-  const housePolygons: Record<number, string> = {
-    1: "120,0 240,0 240,120 120,120", // top edge rect
-    2: "240,0 360,0 240,120", // TR corner upper triangle
-    3: "360,0 360,120 240,120", // TR corner lower triangle
-    4: "240,120 360,120 360,240 240,240", // right edge rect
-    5: "360,240 360,360 240,240", // BR corner upper triangle
-    6: "360,360 240,360 240,240", // BR corner lower triangle
-    7: "240,360 120,360 120,240 240,240", // bottom edge rect
-    8: "120,360 0,360 120,240", // BL corner lower triangle
-    9: "0,360 0,240 120,240", // BL corner upper triangle
-    10: "0,240 0,120 120,120 120,240", // left edge rect
-    11: "0,120 0,0 120,120", // TL corner lower triangle
-    12: "0,0 120,0 120,120", // TL corner upper triangle
+  const houseGrid: Record<number, { col: number; row: number }> = {
+    1: { col: 1, row: 0 },
+    2: { col: 2, row: 0 },
+    3: { col: 3, row: 0 },
+    4: { col: 3, row: 1 },
+    5: { col: 3, row: 2 },
+    6: { col: 3, row: 3 },
+    7: { col: 2, row: 3 },
+    8: { col: 1, row: 3 },
+    9: { col: 0, row: 3 },
+    10: { col: 0, row: 2 },
+    11: { col: 0, row: 1 },
+    12: { col: 0, row: 0 },
   };
 
-  // Text centroids for each house
-  const houseCentroids: Record<number, [number, number]> = {
-    1: [180, 60],
-    2: [280, 40],
-    3: [320, 80],
-    4: [300, 180],
-    5: [320, 280],
-    6: [280, 320],
-    7: [180, 300],
-    8: [80, 320],
-    9: [40, 280],
-    10: [60, 180],
-    11: [40, 80],
-    12: [80, 40],
-  };
-
-  function getHouseContent(h: number) {
-    const rashiIdx = (lagnaIdx + h - 1) % 12;
-    const planets = houseMap[h];
-    return { rashiIdx, planets };
-  }
+  const goldLine = "rgba(253,230,138,0.4)";
+  const goldBright = "#fcd34d";
 
   return (
     <div
       className="mx-auto"
-      style={{ width: "min(320px, 100%)", position: "relative" }}
+      style={{ width: "min(360px, 100%)", position: "relative" }}
     >
       <svg
         role="img"
-        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        viewBox={`0 0 ${S} ${S}`}
         style={{ width: "100%", height: "auto", display: "block" }}
       >
         <title>उत्तर भारतीय जन्म कुंडली</title>
-        {/* Background */}
-        <rect width={SIZE} height={SIZE} fill="rgba(4,6,20,0.95)" rx="3" />
 
-        {/* House fills (subtle) */}
-        {Object.entries(housePolygons).map(([hStr, pts]) => (
-          <polygon
-            key={`fill-${hStr}`}
-            points={pts}
-            fill="rgba(245,215,110,0.02)"
-            stroke="none"
+        {/* Background */}
+        <rect width={S} height={S} fill="rgba(4,6,20,0.97)" rx="4" />
+
+        {/* Center 2x2 decorative area */}
+        <rect
+          x={C}
+          y={C}
+          width={C * 2}
+          height={C * 2}
+          fill="rgba(253,230,138,0.06)"
+        />
+        <line
+          x1={C}
+          y1={C}
+          x2={C * 3}
+          y2={C * 3}
+          stroke={goldLine}
+          strokeWidth="1.5"
+        />
+        <line
+          x1={C * 3}
+          y1={C}
+          x2={C}
+          y2={C * 3}
+          stroke={goldLine}
+          strokeWidth="1.5"
+        />
+        <text
+          x={S / 2}
+          y={S / 2}
+          fontSize="14"
+          fill="rgba(253,230,138,0.5)"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontFamily="'Noto Sans Devanagari', 'Mangal', serif"
+          fontWeight="bold"
+        >
+          कुंडली
+        </text>
+
+        {/* Grid lines — vertical */}
+        {[1, 2, 3].map((i) => (
+          <line
+            key={`vl-${i}`}
+            x1={i * C}
+            y1={0}
+            x2={i * C}
+            y2={S}
+            stroke={goldLine}
+            strokeWidth="1.5"
+          />
+        ))}
+        {/* Grid lines — horizontal */}
+        {[1, 2, 3].map((i) => (
+          <line
+            key={`hl-${i}`}
+            x1={0}
+            y1={i * C}
+            x2={S}
+            y2={i * C}
+            stroke={goldLine}
+            strokeWidth="1.5"
           />
         ))}
 
-        {/* Center decorative polygon */}
-        <polygon
-          points="120,120 240,120 240,240 120,240"
-          fill="rgba(245,215,110,0.06)"
-          stroke="none"
-        />
-
         {/* Outer border */}
         <rect
-          width={SIZE}
-          height={SIZE}
+          width={S}
+          height={S}
           fill="none"
-          stroke="rgba(245,215,110,0.6)"
-          strokeWidth="2"
-          rx="3"
-        />
-
-        {/* Grid lines */}
-        <line
-          x1="120"
-          y1="0"
-          x2="120"
-          y2={SIZE}
-          stroke="rgba(245,215,110,0.25)"
-          strokeWidth="1"
-        />
-        <line
-          x1="240"
-          y1="0"
-          x2="240"
-          y2={SIZE}
-          stroke="rgba(245,215,110,0.25)"
-          strokeWidth="1"
-        />
-        <line
-          x1="0"
-          y1="120"
-          x2={SIZE}
-          y2="120"
-          stroke="rgba(245,215,110,0.25)"
-          strokeWidth="1"
-        />
-        <line
-          x1="0"
-          y1="240"
-          x2={SIZE}
-          y2="240"
-          stroke="rgba(245,215,110,0.25)"
-          strokeWidth="1"
-        />
-
-        {/* Corner diagonals */}
-        <line
-          x1="0"
-          y1="0"
-          x2="120"
-          y2="120"
-          stroke="rgba(245,215,110,0.4)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="360"
-          y1="0"
-          x2="240"
-          y2="120"
-          stroke="rgba(245,215,110,0.4)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="360"
-          y1="360"
-          x2="240"
-          y2="240"
-          stroke="rgba(245,215,110,0.4)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="0"
-          y1="360"
-          x2="120"
-          y2="240"
-          stroke="rgba(245,215,110,0.4)"
-          strokeWidth="1.5"
-        />
-
-        {/* Center X diagonals */}
-        <line
-          x1="120"
-          y1="120"
-          x2="240"
-          y2="240"
-          stroke="rgba(245,215,110,0.5)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="240"
-          y1="120"
-          x2="120"
-          y2="240"
-          stroke="rgba(245,215,110,0.5)"
-          strokeWidth="1.5"
+          stroke={goldBright}
+          strokeWidth="2.5"
+          rx="4"
         />
 
         {/* 12 house cells */}
-        {Object.entries(houseCentroids).map(([hStr, [cx, cy]]) => {
+        {(
+          Object.entries(houseGrid) as [string, { col: number; row: number }][]
+        ).map(([hStr, { col, row }]) => {
           const h = Number(hStr);
-          const { rashiIdx, planets } = getHouseContent(h);
-          const rashiShort = RASHIS[rashiIdx].slice(0, 2);
+          const rashiIdx = (lagnaIdx + h - 1) % 12;
+          const rashiName = RASHI_SHORT[rashiIdx];
+          const planets = houseMap[h] || [];
           const isLagna = h === 1;
 
-          // Render: rashi name, lagna marker, planets
-          const items: {
+          const x = col * C;
+          const y = row * C;
+          const cx = x + C / 2;
+          const cy = y + C / 2;
+
+          // Lines to render: house number, rashi, lagna marker, planets
+          const lines: {
             text: string;
             color: string;
             size: number;
             bold?: boolean;
+            font?: string;
           }[] = [];
-          items.push({
-            text: rashiShort,
-            color: "rgba(245,215,110,0.65)",
-            size: 9,
+          lines.push({
+            text: rashiName,
+            color: goldBright,
+            size: 11,
+            bold: true,
+            font: "'Noto Sans Devanagari', 'Mangal', serif",
           });
           if (isLagna) {
-            items.push({ text: "ल", color: "#fbbf24", size: 12, bold: true });
+            lines.push({
+              text: "ल•",
+              color: "#fbbf24",
+              size: 11,
+              bold: true,
+              font: "'Noto Sans Devanagari', serif",
+            });
           }
           for (const p of planets) {
-            items.push({ text: p, color: "#86efac", size: 11, bold: true });
+            lines.push({
+              text: p,
+              color: "#86efac",
+              size: 12,
+              bold: true,
+              font: "serif",
+            });
           }
 
-          const lineH = 13;
-          const totalH = items.length * lineH;
-          const startY = cy - totalH / 2 + lineH / 2;
+          const lineH = 14;
+          const totalH = lines.length * lineH;
+          const startY = cy - totalH / 2 + lineH * 0.5;
 
           return (
             <g key={`house-${h}`}>
-              {/* House number */}
+              {/* Lagna highlight */}
+              {isLagna && (
+                <rect
+                  x={x + 1}
+                  y={y + 1}
+                  width={C - 2}
+                  height={C - 2}
+                  fill="rgba(253,230,138,0.07)"
+                />
+              )}
+              {/* House number — top-left corner */}
               <text
-                x={cx - 14}
-                y={cy - totalH / 2 - 2}
-                fontSize="8"
-                fill="rgba(245,215,110,0.4)"
-                textAnchor="middle"
+                x={x + 7}
+                y={y + 13}
+                fontSize="12"
+                fill={isLagna ? goldBright : "rgba(255,255,255,0.85)"}
+                textAnchor="start"
                 fontFamily="serif"
+                fontWeight="bold"
               >
                 {h}
               </text>
-              {items.map((item, idx) => (
+              {/* Rashi + planets centered */}
+              {lines.map((line, idx) => (
                 <text
-                  key={`${h}-item-${item.text}`}
+                  key={`${h}-line-${line.text}`}
                   x={cx}
                   y={startY + idx * lineH}
-                  fontSize={item.size}
-                  fill={item.color}
+                  fontSize={line.size}
+                  fill={line.color}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fontFamily="'Noto Sans Devanagari', serif"
-                  fontWeight={item.bold ? "bold" : "normal"}
+                  fontFamily={line.font || "serif"}
+                  fontWeight={line.bold ? "bold" : "normal"}
                 >
-                  {item.text}
+                  {line.text}
                 </text>
               ))}
             </g>
