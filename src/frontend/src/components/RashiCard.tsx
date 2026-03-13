@@ -1,3 +1,6 @@
+import { Share2 } from "lucide-react";
+import { toast } from "sonner";
+
 interface RashiCardProps {
   symbol: string;
   name: string;
@@ -5,9 +8,12 @@ interface RashiCardProps {
   gradient: string;
   borderColor: string;
   index: number;
+  date?: string;
+  luckyColor?: string;
+  luckyNumber?: string;
 }
 
-const DEFAULT_PREDICTIONS: Record<string, string> = {
+export const DEFAULT_PREDICTIONS: Record<string, string> = {
   मेष: "आज का दिन आपके लिए शुभ है। नई योजनाएं बनाएं और उन पर अमल करें। प्रेम जीवन में मधुरता आएगी।",
   वृषभ: "आर्थिक मामलों में सावधानी बरतें। परिवार के साथ समय बिताएं। स्वास्थ्य का ध्यान रखें।",
   मिथुन: "व्यापार में लाभ के अवसर मिलेंगे। दोस्तों से मुलाकात होगी। यात्रा की संभावना है।",
@@ -29,14 +35,43 @@ export function RashiCard({
   gradient,
   borderColor,
   index,
+  date,
+  luckyColor,
+  luckyNumber,
 }: RashiCardProps) {
   const displayPrediction =
     prediction || DEFAULT_PREDICTIONS[name] || "आज का राशिफल जल्द उपलब्ध होगा।";
 
+  const handleShare = async () => {
+    const luckyLine =
+      luckyColor || luckyNumber
+        ? `\n🎨 शुभ रंग: ${luckyColor || "-"} | 🔢 शुभ अंक: ${luckyNumber || "-"}`
+        : "";
+    const shareText = `${symbol} ${name} राशिफल${date ? ` - ${date}` : ""}\n\n${displayPrediction}${luckyLine}\n\n✨ ज्योतिषी उमेश जी\n📱 WhatsApp: +91 9654123331\n📸 Instagram: @umesh.astrology`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${name} राशिफल - ज्योतिषी उमेश जी`,
+          text: shareText,
+        });
+      } catch {
+        // user cancelled or error
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast.success("राशिफल clipboard में copy हो गया!");
+      } catch {
+        toast.error("शेयर नहीं हो सका।");
+      }
+    }
+  };
+
   return (
     <div
       data-ocid={`rashi.item.${index}`}
-      className="rashi-card relative rounded-2xl p-[1px] transition-all duration-300 cursor-default"
+      className="rashi-card relative rounded-2xl p-[1px] transition-all duration-300"
       style={{ background: borderColor }}
     >
       <div
@@ -89,6 +124,63 @@ export function RashiCard({
         >
           {displayPrediction}
         </p>
+
+        {/* Lucky Color & Number */}
+        {(luckyColor || luckyNumber) && (
+          <>
+            <div
+              className="w-full h-px mt-3 opacity-30"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, #f5d76e, transparent)",
+              }}
+            />
+            <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+              {luckyColor && (
+                <span
+                  className="devanagari text-xs px-2 py-1 rounded-full font-semibold"
+                  style={{
+                    background: "rgba(245,215,110,0.12)",
+                    border: "1px solid rgba(245,215,110,0.35)",
+                    color: "#f5d76e",
+                    textShadow: "0 0 6px rgba(245,215,110,0.4)",
+                  }}
+                >
+                  🎨 {luckyColor}
+                </span>
+              )}
+              {luckyNumber && (
+                <span
+                  className="devanagari text-xs px-2 py-1 rounded-full font-semibold"
+                  style={{
+                    background: "rgba(245,215,110,0.12)",
+                    border: "1px solid rgba(245,215,110,0.35)",
+                    color: "#f5d76e",
+                    textShadow: "0 0 6px rgba(245,215,110,0.4)",
+                  }}
+                >
+                  🔢 {luckyNumber}
+                </span>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Share button */}
+        <button
+          type="button"
+          onClick={handleShare}
+          data-ocid={`rashi.item.${index}.button`}
+          className="mt-3 w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-semibold devanagari transition-all hover:opacity-90 active:scale-95"
+          style={{
+            background: "rgba(245,215,110,0.15)",
+            border: "1px solid rgba(245,215,110,0.4)",
+            color: "#f5d76e",
+          }}
+        >
+          <Share2 size={13} />
+          शेयर करें
+        </button>
       </div>
     </div>
   );

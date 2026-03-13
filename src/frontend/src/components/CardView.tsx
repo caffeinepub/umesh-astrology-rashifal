@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings } from "lucide-react";
+import { Settings, Share2 } from "lucide-react";
+import { useState } from "react";
 import { SiInstagram, SiWhatsapp } from "react-icons/si";
 import type { Rashifal } from "../backend.d";
 import { useIsAdmin, useRashifalByDate } from "../hooks/useQueries";
-import { RashiCard } from "./RashiCard";
+import { DEFAULT_PREDICTIONS, RashiCard } from "./RashiCard";
 import { StarField } from "./StarField";
 
 interface CardViewProps {
@@ -19,72 +20,96 @@ const RASHIS = [
     name: "मेष",
     gradient: "linear-gradient(135deg, #1a0533 0%, #4a0e8f 50%, #2d0a5e 100%)",
     border: "linear-gradient(135deg, #9b59b6, #f5d76e, #9b59b6)",
+    luckyColor: "लाल",
+    luckyNumber: "9",
   },
   {
     symbol: "♉",
     name: "वृषभ",
     gradient: "linear-gradient(135deg, #0a2e1a 0%, #1a6e3c 50%, #0f3d22 100%)",
     border: "linear-gradient(135deg, #27ae60, #f5d76e, #27ae60)",
+    luckyColor: "हरा",
+    luckyNumber: "6",
   },
   {
     symbol: "♊",
     name: "मिथुन",
     gradient: "linear-gradient(135deg, #0a1e3d 0%, #1a4e8f 50%, #0d2a5e 100%)",
     border: "linear-gradient(135deg, #3498db, #f5d76e, #3498db)",
+    luckyColor: "पीला",
+    luckyNumber: "5",
   },
   {
     symbol: "♋",
     name: "कर्क",
     gradient: "linear-gradient(135deg, #2e1a0a 0%, #8f5a1a 50%, #5e3a0f 100%)",
     border: "linear-gradient(135deg, #e67e22, #f5d76e, #e67e22)",
+    luckyColor: "सफेद",
+    luckyNumber: "2",
   },
   {
     symbol: "♌",
     name: "सिंह",
     gradient: "linear-gradient(135deg, #2e0a0a 0%, #8f1a1a 50%, #5e0f0f 100%)",
     border: "linear-gradient(135deg, #e74c3c, #f5d76e, #e74c3c)",
+    luckyColor: "सुनहरा",
+    luckyNumber: "1",
   },
   {
     symbol: "♍",
     name: "कन्या",
     gradient: "linear-gradient(135deg, #1a2e0a 0%, #4a8f1a 50%, #2d5e0f 100%)",
     border: "linear-gradient(135deg, #8bc34a, #f5d76e, #8bc34a)",
+    luckyColor: "हरा",
+    luckyNumber: "3",
   },
   {
     symbol: "♎",
     name: "तुला",
     gradient: "linear-gradient(135deg, #1a1a2e 0%, #4a4a8f 50%, #2d2d5e 100%)",
     border: "linear-gradient(135deg, #7986cb, #f5d76e, #7986cb)",
+    luckyColor: "नीला",
+    luckyNumber: "6",
   },
   {
     symbol: "♏",
     name: "वृश्चिक",
     gradient: "linear-gradient(135deg, #1a0a2e 0%, #5a1a7a 50%, #3a0f4e 100%)",
     border: "linear-gradient(135deg, #ab47bc, #f5d76e, #ab47bc)",
+    luckyColor: "लाल",
+    luckyNumber: "8",
   },
   {
     symbol: "♐",
     name: "धनु",
     gradient: "linear-gradient(135deg, #1a1a0a 0%, #7a6a0a 50%, #4e430f 100%)",
     border: "linear-gradient(135deg, #ffc107, #f5d76e, #ffc107)",
+    luckyColor: "पीला",
+    luckyNumber: "3",
   },
   {
     symbol: "♑",
     name: "मकर",
     gradient: "linear-gradient(135deg, #0a2e2e 0%, #1a6e6e 50%, #0f3d3d 100%)",
     border: "linear-gradient(135deg, #26a69a, #f5d76e, #26a69a)",
+    luckyColor: "काला",
+    luckyNumber: "8",
   },
   {
     symbol: "♒",
     name: "कुंभ",
     gradient: "linear-gradient(135deg, #0a1a2e 0%, #1a3a6e 50%, #0f253d 100%)",
     border: "linear-gradient(135deg, #42a5f5, #f5d76e, #42a5f5)",
+    luckyColor: "नीला",
+    luckyNumber: "4",
   },
   {
     symbol: "♓",
     name: "मीन",
-    gradient: "linear-gradient(135deg, #0a1a2e 0%, #1a5a8f 50%, #0f3a5e 100%)",
+    gradient: "linear-gradient(135deg, #0a1a2e 0%, #1a5a8f 50%, #3a5e0f 100%)",
     border: "linear-gradient(135deg, #29b6f6, #f5d76e, #29b6f6)",
+    luckyColor: "पीला",
+    luckyNumber: "3",
   },
 ];
 
@@ -122,10 +147,53 @@ export function CardView({
   const { data: rashifalList = [], isLoading } =
     useRashifalByDate(selectedDate);
   const { data: isAdmin } = useIsAdmin();
+  const [shareAllStatus, setShareAllStatus] = useState<
+    "idle" | "copied" | "shared"
+  >("idle");
 
   const predictionMap: Record<string, string> = {};
   for (const r of rashifalList as Rashifal[]) {
     predictionMap[r.rashi] = r.prediction;
+  }
+
+  const displayDate = formatDisplayDate(selectedDate);
+
+  function buildAllRashifalText(): string {
+    const lines: string[] = [];
+    lines.push(`🌟 दैनिक राशिफल - ${displayDate} 🌟`);
+    lines.push("");
+    for (const rashi of RASHIS) {
+      const prediction =
+        predictionMap[rashi.name] ||
+        DEFAULT_PREDICTIONS[rashi.name] ||
+        "आज का राशिफल जल्द उपलब्ध होगा।";
+      lines.push(`${rashi.symbol} ${rashi.name}: ${prediction}`);
+      lines.push(
+        `🎨 शुभ रंग: ${rashi.luckyColor} | 🔢 शुभ अंक: ${rashi.luckyNumber}`,
+      );
+      lines.push("");
+    }
+    lines.push("✨ ज्योतिषी उमेश जी");
+    lines.push("📱 WhatsApp: +91 9654123331");
+    lines.push("📸 Instagram: @umesh.astrology");
+    return lines.join("\n");
+  }
+
+  async function handleShareAll() {
+    const text = buildAllRashifalText();
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `दैनिक राशिफल - ${displayDate}`, text });
+        setShareAllStatus("shared");
+        setTimeout(() => setShareAllStatus("idle"), 2500);
+      } catch {
+        // user cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(text);
+      setShareAllStatus("copied");
+      setTimeout(() => setShareAllStatus("idle"), 2500);
+    }
   }
 
   return (
@@ -199,7 +267,7 @@ export function CardView({
                 className="devanagari text-xl font-semibold"
                 style={{ color: "#f5d76e" }}
               >
-                📅 {formatDisplayDate(selectedDate)}
+                📅 {displayDate}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -309,7 +377,7 @@ export function CardView({
         {!isLoading && (
           <div
             data-ocid="rashifal.list"
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"
           >
             {RASHIS.map((rashi, i) => (
               <RashiCard
@@ -320,8 +388,51 @@ export function CardView({
                 gradient={rashi.gradient}
                 borderColor={rashi.border}
                 index={i + 1}
+                date={displayDate}
+                luckyColor={rashi.luckyColor}
+                luckyNumber={rashi.luckyNumber}
               />
             ))}
+          </div>
+        )}
+
+        {/* Share All Rashifal Button */}
+        {!isLoading && (
+          <div className="flex justify-center mb-10">
+            <button
+              type="button"
+              onClick={handleShareAll}
+              data-ocid="rashifal.share_all.button"
+              className="devanagari flex items-center justify-center gap-3 w-full max-w-md px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105 active:scale-95"
+              style={{
+                background:
+                  shareAllStatus !== "idle"
+                    ? "linear-gradient(135deg, #27ae60, #1e8449)"
+                    : "linear-gradient(135deg, #e8b84b 0%, #f5d76e 40%, #c9962e 100%)",
+                color: shareAllStatus !== "idle" ? "#ffffff" : "#1a0a00",
+                boxShadow:
+                  shareAllStatus !== "idle"
+                    ? "0 0 30px rgba(39,174,96,0.5), 0 4px 20px rgba(0,0,0,0.4)"
+                    : "0 0 30px rgba(232,184,75,0.6), 0 4px 20px rgba(0,0,0,0.4)",
+                border:
+                  shareAllStatus !== "idle"
+                    ? "1px solid rgba(39,174,96,0.6)"
+                    : "1px solid rgba(245,215,110,0.8)",
+                textShadow:
+                  shareAllStatus !== "idle"
+                    ? "none"
+                    : "0 1px 2px rgba(255,255,255,0.3)",
+              }}
+            >
+              <Share2 size={22} />
+              <span>
+                {shareAllStatus === "copied"
+                  ? "✅ क्लिपबोर्ड में कॉपी हो गया!"
+                  : shareAllStatus === "shared"
+                    ? "✅ शेयर हो गया!"
+                    : "🌟 सभी राशिफल शेयर करें"}
+              </span>
+            </button>
           </div>
         )}
 
