@@ -7,224 +7,273 @@ interface KundaliMilanProps {
   onBack: () => void;
 }
 
-// Nakshatra data with lord
+// ===== ACCURATE ASTRONOMICAL CALCULATIONS =====
+// Based on Jean Meeus "Astronomical Algorithms" (2nd Edition)
+
+function toJulianDay(dateStr: string, timeStr: string): number {
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return 2451545.0;
+  let year = Number.parseInt(parts[0], 10);
+  let month = Number.parseInt(parts[1], 10);
+  const day = Number.parseInt(parts[2], 10);
+  const timeParts = timeStr.split(":");
+  const hour = Number.parseInt(timeParts[0] || "12", 10);
+  const min = Number.parseInt(timeParts[1] || "0", 10);
+  // Convert local India time (IST = UTC+5:30) to UTC
+  const totalMinutesUTC = hour * 60 + min - 330;
+  const hourUTC = totalMinutesUTC / 60;
+
+  if (month <= 2) {
+    year -= 1;
+    month += 12;
+  }
+  const A = Math.floor(year / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return (
+    Math.floor(365.25 * (year + 4716)) +
+    Math.floor(30.6001 * (month + 1)) +
+    day +
+    B -
+    1524.5 +
+    hourUTC / 24
+  );
+}
+
+// Lahiri Ayanamsha (Chitrapaksha) - accurate formula
+function getLahiriAyanamsha(T: number): number {
+  // T in Julian centuries from J2000.0
+  // Reference value at J2000.0 is 23.85° with annual precession ~50.3"
+  return 23.85 + T * 1.3969; // degrees
+}
+
+// Accurate Moon tropical longitude using Meeus Chapter 47
+function getMoonTropicalLongitude(jd: number): number {
+  const T = (jd - 2451545.0) / 36525.0;
+
+  // Moon's mean longitude L'
+  let Lp =
+    218.3164477 +
+    481267.88123421 * T -
+    0.0015786 * T * T +
+    (T * T * T) / 538841 -
+    (T * T * T * T) / 65194000;
+
+  // Moon's mean elongation D
+  let D =
+    297.8501921 +
+    445267.1114034 * T -
+    0.0018819 * T * T +
+    (T * T * T) / 545868 -
+    (T * T * T * T) / 113065000;
+
+  // Sun's mean anomaly M
+  let M =
+    357.5291092 +
+    35999.0502909 * T -
+    0.0001536 * T * T +
+    (T * T * T) / 24490000;
+
+  // Moon's mean anomaly M'
+  let Mp =
+    134.9633964 +
+    477198.8675055 * T +
+    0.0087414 * T * T +
+    (T * T * T) / 69699 -
+    (T * T * T * T) / 14712000;
+
+  // Moon's argument of latitude F
+  let F =
+    93.272095 +
+    483202.0175233 * T -
+    0.0036539 * T * T -
+    (T * T * T) / 3526000 +
+    (T * T * T * T) / 863310000;
+
+  // Additional arguments
+  const A1 = 119.75 + 131.849 * T;
+  const A2 = 53.09 + 479264.29 * T;
+  const _A3 = 313.45 + 481266.484 * T;
+
+  const r = Math.PI / 180;
+  D = ((D % 360) + 360) % 360;
+  M = ((M % 360) + 360) % 360;
+  Mp = ((Mp % 360) + 360) % 360;
+  F = ((F % 360) + 360) % 360;
+  Lp = ((Lp % 360) + 360) % 360;
+
+  const Dr = D * r;
+  const Mr = M * r;
+  const Mpr = Mp * r;
+  const Fr = F * r;
+
+  // Sum of periodic terms for longitude (0.000001 degree units)
+  let dL =
+    6288774 * Math.sin(Mpr) +
+    1274027 * Math.sin(2 * Dr - Mpr) +
+    658314 * Math.sin(2 * Dr) +
+    213618 * Math.sin(2 * Mpr) -
+    185116 * Math.sin(Mr) -
+    114332 * Math.sin(2 * Fr) +
+    58793 * Math.sin(2 * Dr - 2 * Mpr) +
+    57066 * Math.sin(2 * Dr - Mr - Mpr) +
+    53322 * Math.sin(2 * Dr + Mpr) +
+    45758 * Math.sin(2 * Dr - Mr) -
+    40923 * Math.sin(Mr - Mpr) -
+    34720 * Math.sin(Dr) -
+    30383 * Math.sin(Mr + Mpr) +
+    15327 * Math.sin(2 * Dr - 2 * Fr) -
+    12528 * Math.sin(Mpr + 2 * Fr) +
+    10980 * Math.sin(Mpr - 2 * Fr) +
+    10675 * Math.sin(4 * Dr - Mpr) +
+    10034 * Math.sin(3 * Mpr) +
+    8548 * Math.sin(4 * Dr - 2 * Mpr) -
+    7888 * Math.sin(2 * Dr + Mr - Mpr) -
+    6766 * Math.sin(2 * Dr + Mr) -
+    5163 * Math.sin(Dr - Mpr) +
+    4987 * Math.sin(Dr + Mr) +
+    4036 * Math.sin(2 * Dr - Mr + Mpr) +
+    3994 * Math.sin(2 * Dr + 2 * Mpr) +
+    3861 * Math.sin(4 * Dr) +
+    3665 * Math.sin(2 * Dr - 3 * Mpr) -
+    2689 * Math.sin(Mr - 2 * Mpr) -
+    2602 * Math.sin(2 * Dr - Mpr + 2 * Fr) +
+    2390 * Math.sin(2 * Dr - Mr - 2 * Mpr) -
+    2348 * Math.sin(Dr + Mpr) +
+    2236 * Math.sin(2 * Dr - 2 * Mr) -
+    2120 * Math.sin(Mr + 2 * Mpr) -
+    2069 * Math.sin(2 * Mr) +
+    2048 * Math.sin(2 * Dr - 2 * Mr - Mpr) -
+    1773 * Math.sin(2 * Dr + Mpr - 2 * Fr) -
+    1595 * Math.sin(2 * Dr + 2 * Fr) +
+    1215 * Math.sin(4 * Dr - Mr - Mpr) -
+    1110 * Math.sin(2 * Mpr + 2 * Fr) -
+    892 * Math.sin(3 * Dr - Mpr) -
+    810 * Math.sin(2 * Dr + Mr + Mpr) +
+    759 * Math.sin(4 * Dr - Mr - 2 * Mpr) -
+    713 * Math.sin(2 * Mr - Mpr) -
+    700 * Math.sin(2 * Dr + 2 * Mr - Mpr) +
+    691 * Math.sin(2 * Dr + Mr - 2 * Mpr) +
+    596 * Math.sin(2 * Dr - Mr - 2 * Fr) +
+    549 * Math.sin(4 * Dr + Mpr) +
+    537 * Math.sin(4 * Mpr) +
+    520 * Math.sin(4 * Dr - Mr) -
+    487 * Math.sin(Dr - 2 * Mpr) -
+    399 * Math.sin(2 * Dr + Mr - 2 * Fr) -
+    381 * Math.sin(2 * Mpr - 2 * Fr) +
+    351 * Math.sin(Dr + Mr + Mpr) -
+    340 * Math.sin(3 * Dr - 2 * Mpr) +
+    330 * Math.sin(4 * Dr - 3 * Mpr) +
+    327 * Math.sin(2 * Dr - Mr + 2 * Mpr) -
+    323 * Math.sin(2 * Mr + Mpr) +
+    299 * Math.sin(Dr + Mr - Mpr) +
+    294 * Math.sin(2 * Dr + 3 * Mpr);
+
+  // Additional corrections
+  dL +=
+    3958 * Math.sin(A1 * r) +
+    1962 * Math.sin((Lp - F) * r) +
+    318 * Math.sin(A2 * r);
+  dL = dL / 1000000; // convert to degrees
+
+  const tropicalLong = (((Lp + dL) % 360) + 360) % 360;
+  return tropicalLong;
+}
+
+function getMoonSiderealLongitude(dateStr: string, timeStr: string): number {
+  const jd = toJulianDay(dateStr, timeStr);
+  const T = (jd - 2451545.0) / 36525.0;
+  const tropical = getMoonTropicalLongitude(jd);
+  const ayanamsha = getLahiriAyanamsha(T);
+  return (((tropical - ayanamsha) % 360) + 360) % 360;
+}
+
+// Calculate Lagna (Ascendant) using sidereal time
+function getLagnaIndex(
+  dateStr: string,
+  timeStr: string,
+  pobLat = 22.0,
+  pobLon = 82.5,
+): number {
+  const jd = toJulianDay(dateStr, timeStr);
+  const T = (jd - 2451545.0) / 36525.0;
+
+  // Greenwich Mean Sidereal Time at 0h UT
+  const jd0 = Math.floor(jd - 0.5) + 0.5;
+  const T0 = (jd0 - 2451545.0) / 36525.0;
+  let GMST0 =
+    100.4606184 +
+    36000.77004 * T0 +
+    0.000387933 * T0 * T0 -
+    (T0 * T0 * T0) / 38710000;
+  GMST0 = ((GMST0 % 360) + 360) % 360;
+
+  // UT hours
+  const timeParts = timeStr.split(":");
+  const hour = Number.parseInt(timeParts[0] || "12", 10);
+  const min = Number.parseInt(timeParts[1] || "0", 10);
+  // Convert IST to UT
+  const utHours = (hour * 60 + min - 330) / 60;
+  const utHoursAdj = ((utHours % 24) + 24) % 24;
+
+  // GMST at UT
+  let GMST = GMST0 + 360.98564724 * (utHoursAdj / 24);
+  GMST = ((GMST % 360) + 360) % 360;
+
+  // Local Sidereal Time (degrees)
+  let LST = (((GMST + pobLon) % 360) + 360) % 360;
+
+  // Apply Lahiri Ayanamsha for sidereal LST
+  const ayanamsha = getLahiriAyanamsha(T);
+  let siderealLST = (((LST - ayanamsha) % 360) + 360) % 360;
+
+  // Convert LST to RAMC
+  const RAMC = siderealLST;
+
+  // Calculate ascendant from RAMC using obliquity of ecliptic (~23.4°)
+  const e = (23.439291111 - 0.013004167 * T) * (Math.PI / 180);
+  const ramcRad = RAMC * (Math.PI / 180);
+  const latRad = pobLat * (Math.PI / 180);
+
+  // Ascendant formula
+  const ascendantRad = Math.atan2(
+    Math.cos(ramcRad),
+    -(Math.sin(ramcRad) * Math.cos(e) + Math.tan(latRad) * Math.sin(e)),
+  );
+  let ascendant = (ascendantRad * 180) / Math.PI;
+  ascendant = ((ascendant % 360) + 360) % 360;
+
+  return Math.floor(ascendant / 30) % 12;
+}
+
+// Nakshatra data
 const NAKSHATRAS = [
-  {
-    name: "अश्विनी",
-    lord: "केतु",
-    rashi: "मेष",
-    gana: "देव",
-    yoni: "अश्व",
-    nadi: "आदि",
-  },
-  {
-    name: "भरणी",
-    lord: "शुक्र",
-    rashi: "मेष",
-    gana: "मनुष्य",
-    yoni: "गज",
-    nadi: "मध्य",
-  },
-  {
-    name: "कृत्तिका",
-    lord: "सूर्य",
-    rashi: "मेष/वृषभ",
-    gana: "राक्षस",
-    yoni: "मेष",
-    nadi: "अंत्य",
-  },
-  {
-    name: "रोहिणी",
-    lord: "चंद्र",
-    rashi: "वृषभ",
-    gana: "मनुष्य",
-    yoni: "सर्प",
-    nadi: "अंत्य",
-  },
-  {
-    name: "मृगशिरा",
-    lord: "मंगल",
-    rashi: "वृषभ/मिथुन",
-    gana: "देव",
-    yoni: "सर्प",
-    nadi: "मध्य",
-  },
-  {
-    name: "आर्द्रा",
-    lord: "राहु",
-    rashi: "मिथुन",
-    gana: "मनुष्य",
-    yoni: "श्वान",
-    nadi: "आदि",
-  },
-  {
-    name: "पुनर्वसु",
-    lord: "गुरु",
-    rashi: "मिथुन/कर्क",
-    gana: "देव",
-    yoni: "मार्जार",
-    nadi: "आदि",
-  },
-  {
-    name: "पुष्य",
-    lord: "शनि",
-    rashi: "कर्क",
-    gana: "देव",
-    yoni: "मेष",
-    nadi: "मध्य",
-  },
-  {
-    name: "आश्लेषा",
-    lord: "बुध",
-    rashi: "कर्क",
-    gana: "राक्षस",
-    yoni: "मार्जार",
-    nadi: "अंत्य",
-  },
-  {
-    name: "मघा",
-    lord: "केतु",
-    rashi: "सिंह",
-    gana: "राक्षस",
-    yoni: "मूषक",
-    nadi: "अंत्य",
-  },
-  {
-    name: "पूर्वाफाल्गुनी",
-    lord: "शुक्र",
-    rashi: "सिंह",
-    gana: "मनुष्य",
-    yoni: "मूषक",
-    nadi: "मध्य",
-  },
-  {
-    name: "उत्तराफाल्गुनी",
-    lord: "सूर्य",
-    rashi: "सिंह/कन्या",
-    gana: "मनुष्य",
-    yoni: "गाय",
-    nadi: "आदि",
-  },
-  {
-    name: "हस्त",
-    lord: "चंद्र",
-    rashi: "कन्या",
-    gana: "देव",
-    yoni: "महिष",
-    nadi: "आदि",
-  },
-  {
-    name: "चित्रा",
-    lord: "मंगल",
-    rashi: "कन्या/तुला",
-    gana: "राक्षस",
-    yoni: "व्याघ्र",
-    nadi: "मध्य",
-  },
-  {
-    name: "स्वाति",
-    lord: "राहु",
-    rashi: "तुला",
-    gana: "देव",
-    yoni: "महिष",
-    nadi: "अंत्य",
-  },
-  {
-    name: "विशाखा",
-    lord: "गुरु",
-    rashi: "तुला/वृश्चिक",
-    gana: "राक्षस",
-    yoni: "व्याघ्र",
-    nadi: "अंत्य",
-  },
-  {
-    name: "अनुराधा",
-    lord: "शनि",
-    rashi: "वृश्चिक",
-    gana: "देव",
-    yoni: "मृग",
-    nadi: "मध्य",
-  },
-  {
-    name: "ज्येष्ठा",
-    lord: "बुध",
-    rashi: "वृश्चिक",
-    gana: "राक्षस",
-    yoni: "मृग",
-    nadi: "आदि",
-  },
-  {
-    name: "मूल",
-    lord: "केतु",
-    rashi: "धनु",
-    gana: "राक्षस",
-    yoni: "श्वान",
-    nadi: "आदि",
-  },
-  {
-    name: "पूर्वाषाढ़ा",
-    lord: "शुक्र",
-    rashi: "धनु",
-    gana: "मनुष्य",
-    yoni: "वानर",
-    nadi: "मध्य",
-  },
-  {
-    name: "उत्तराषाढ़ा",
-    lord: "सूर्य",
-    rashi: "धनु/मकर",
-    gana: "मनुष्य",
-    yoni: "नकुल",
-    nadi: "अंत्य",
-  },
-  {
-    name: "श्रवण",
-    lord: "चंद्र",
-    rashi: "मकर",
-    gana: "देव",
-    yoni: "वानर",
-    nadi: "अंत्य",
-  },
-  {
-    name: "धनिष्ठा",
-    lord: "मंगल",
-    rashi: "मकर/कुंभ",
-    gana: "राक्षस",
-    yoni: "सिंह",
-    nadi: "मध्य",
-  },
-  {
-    name: "शतभिषा",
-    lord: "राहु",
-    rashi: "कुंभ",
-    gana: "राक्षस",
-    yoni: "अश्व",
-    nadi: "आदि",
-  },
-  {
-    name: "पूर्वाभाद्रपद",
-    lord: "गुरु",
-    rashi: "कुंभ/मीन",
-    gana: "मनुष्य",
-    yoni: "सिंह",
-    nadi: "आदि",
-  },
-  {
-    name: "उत्तराभाद्रपद",
-    lord: "शनि",
-    rashi: "मीन",
-    gana: "मनुष्य",
-    yoni: "गाय",
-    nadi: "मध्य",
-  },
-  {
-    name: "रेवती",
-    lord: "बुध",
-    rashi: "मीन",
-    gana: "देव",
-    yoni: "गज",
-    nadi: "अंत्य",
-  },
+  { name: "अश्विनी", lord: "केतु", gana: "देव", yoni: "अश्व", nadi: "आदि" },
+  { name: "भरणी", lord: "शुक्र", gana: "मनुष्य", yoni: "गज", nadi: "मध्य" },
+  { name: "कृत्तिका", lord: "सूर्य", gana: "राक्षस", yoni: "मेष", nadi: "अंत्य" },
+  { name: "रोहिणी", lord: "चंद्र", gana: "मनुष्य", yoni: "सर्प", nadi: "अंत्य" },
+  { name: "मृगशिरा", lord: "मंगल", gana: "देव", yoni: "सर्प", nadi: "मध्य" },
+  { name: "आर्द्रा", lord: "राहु", gana: "मनुष्य", yoni: "श्वान", nadi: "आदि" },
+  { name: "पुनर्वसु", lord: "गुरु", gana: "देव", yoni: "मार्जार", nadi: "आदि" },
+  { name: "पुष्य", lord: "शनि", gana: "देव", yoni: "मेष", nadi: "मध्य" },
+  { name: "आश्लेषा", lord: "बुध", gana: "राक्षस", yoni: "मार्जार", nadi: "अंत्य" },
+  { name: "मघा", lord: "केतु", gana: "राक्षस", yoni: "मूषक", nadi: "अंत्य" },
+  { name: "पूर्वाफाल्गुनी", lord: "शुक्र", gana: "मनुष्य", yoni: "मूषक", nadi: "मध्य" },
+  { name: "उत्तराफाल्गुनी", lord: "सूर्य", gana: "मनुष्य", yoni: "गाय", nadi: "आदि" },
+  { name: "हस्त", lord: "चंद्र", gana: "देव", yoni: "महिष", nadi: "आदि" },
+  { name: "चित्रा", lord: "मंगल", gana: "राक्षस", yoni: "व्याघ्र", nadi: "मध्य" },
+  { name: "स्वाति", lord: "राहु", gana: "देव", yoni: "महिष", nadi: "अंत्य" },
+  { name: "विशाखा", lord: "गुरु", gana: "राक्षस", yoni: "व्याघ्र", nadi: "अंत्य" },
+  { name: "अनुराधा", lord: "शनि", gana: "देव", yoni: "मृग", nadi: "मध्य" },
+  { name: "ज्येष्ठा", lord: "बुध", gana: "राक्षस", yoni: "मृग", nadi: "आदि" },
+  { name: "मूल", lord: "केतु", gana: "राक्षस", yoni: "श्वान", nadi: "आदि" },
+  { name: "पूर्वाषाढ़ा", lord: "शुक्र", gana: "मनुष्य", yoni: "वानर", nadi: "मध्य" },
+  { name: "उत्तराषाढ़ा", lord: "सूर्य", gana: "मनुष्य", yoni: "नकुल", nadi: "अंत्य" },
+  { name: "श्रवण", lord: "चंद्र", gana: "देव", yoni: "वानर", nadi: "अंत्य" },
+  { name: "धनिष्ठा", lord: "मंगल", gana: "राक्षस", yoni: "सिंह", nadi: "मध्य" },
+  { name: "शतभिषा", lord: "राहु", gana: "राक्षस", yoni: "अश्व", nadi: "आदि" },
+  { name: "पूर्वाभाद्रपद", lord: "गुरु", gana: "मनुष्य", yoni: "सिंह", nadi: "आदि" },
+  { name: "उत्तराभाद्रपद", lord: "शनि", gana: "मनुष्य", yoni: "गाय", nadi: "मध्य" },
+  { name: "रेवती", lord: "बुध", gana: "देव", yoni: "गज", nadi: "अंत्य" },
 ];
 
 const RASHIS = [
@@ -287,76 +336,22 @@ const RASHI_VARNA: Record<string, string> = {
   मीन: "ब्राह्मण",
 };
 
-// Vashya groups
 const VASHYA_GROUPS: string[][] = [
-  ["मेष", "सिंह", "धनु"], // चतुष्पद
-  ["वृषभ", "मकर"], // चतुष्पद
-  ["मिथुन", "तुला", "कुंभ", "कन्या"], // मानव/द्विपद
-  ["कर्क", "वृश्चिक", "मीन"], // जलचर
-  ["वृश्चिक"], // कीट
+  ["मेष", "सिंह", "धनु"],
+  ["वृषभ", "मकर"],
+  ["मिथुन", "तुला", "कुंभ", "कन्या"],
+  ["कर्क", "वृश्चिक", "मीन"],
 ];
 
-function getRashiFromDate(dobStr: string, _tobStr: string): string {
-  // Simplified moon sign estimation based on birth date
-  // In real astrology, this requires ephemeris. We'll use a simplified cyclic method.
-  const parts = dobStr.split("-");
-  if (parts.length !== 3) return "मेष";
-  const year = Number.parseInt(parts[0], 10);
-  const month = Number.parseInt(parts[1], 10);
-  const day = Number.parseInt(parts[2], 10);
-  // Julian Day Number approximation
-  const a = Math.floor((14 - month) / 12);
-  const y = year + 4800 - a;
-  const m = month + 12 * a - 3;
-  const jdn =
-    day +
-    Math.floor((153 * m + 2) / 5) +
-    365 * y +
-    Math.floor(y / 4) -
-    Math.floor(y / 100) +
-    Math.floor(y / 400) -
-    32045;
-  // Moon completes cycle in ~27.32 days across 27 nakshatras
-  const nakshatraIndex = Math.abs(jdn * 13 + 5) % 27;
-  const nak = NAKSHATRAS[nakshatraIndex];
-  const rashiStr = nak.rashi.split("/")[0];
-  return rashiStr;
+// Mangal dosha: Mars in 1, 2, 4, 7, 8, 12 from lagna
+// We check based on lagna rashi
+function _getMangalDosha(lagnaRashi: string, rashiOfMars: string): boolean {
+  const lagnaIdx = RASHIS.indexOf(lagnaRashi);
+  const marsIdx = RASHIS.indexOf(rashiOfMars);
+  if (lagnaIdx < 0 || marsIdx < 0) return false;
+  const pos = ((marsIdx - lagnaIdx + 12) % 12) + 1;
+  return [1, 2, 4, 7, 8, 12].includes(pos);
 }
-
-function getNakshatraFromDate(dobStr: string): number {
-  const parts = dobStr.split("-");
-  if (parts.length !== 3) return 0;
-  const year = Number.parseInt(parts[0], 10);
-  const month = Number.parseInt(parts[1], 10);
-  const day = Number.parseInt(parts[2], 10);
-  const a = Math.floor((14 - month) / 12);
-  const y = year + 4800 - a;
-  const m = month + 12 * a - 3;
-  const jdn =
-    day +
-    Math.floor((153 * m + 2) / 5) +
-    365 * y +
-    Math.floor(y / 4) -
-    Math.floor(y / 100) +
-    Math.floor(y / 400) -
-    32045;
-  return Math.abs(jdn * 13 + 5) % 27;
-}
-
-function getLagna(_dobStr: string, tobStr: string): string {
-  const timeParts = tobStr.split(":");
-  const hours = Number.parseInt(timeParts[0] || "12", 10);
-  const lagnaIndex = Math.floor((hours * 2) / 2) % 12;
-  return RASHIS[lagnaIndex];
-}
-
-function getMangalDosha(rashi: string, nakshatraIndex: number): boolean {
-  // Mangal dosha: Mars in 1, 4, 7, 8, 12 houses from lagna/moon
-  const mangalDoshaRashis = ["मेष", "वृश्चिक", "कर्क", "कन्या", "मकर"];
-  return mangalDoshaRashis.includes(rashi) || nakshatraIndex % 6 === 0;
-}
-
-// GUNA MILAN CALCULATIONS
 
 function calcVarna(varRashi: string, vadhuRashi: string): number {
   const varnaOrder: Record<string, number> = {
@@ -374,7 +369,6 @@ function calcVashya(varRashi: string, vadhuRashi: string): number {
   for (const group of VASHYA_GROUPS) {
     if (group.includes(varRashi) && group.includes(vadhuRashi)) return 2;
   }
-  // Partial matches
   const friendly: Record<string, string[]> = {
     मेष: ["सिंह"],
     वृषभ: ["कर्क"],
@@ -404,20 +398,20 @@ function calcYoni(varNak: number, vadhuNak: number): number {
   const nak2 = NAKSHATRAS[vadhuNak];
   if (nak1.yoni === nak2.yoni) return 4;
   const friendly: Record<string, string[]> = {
-    अश्व: ["अश्व", "महिष"],
-    गज: ["गज", "सिंह"],
-    मेष: ["मेष", "वानर"],
-    सर्प: ["सर्प", "नकुल"],
-    श्वान: ["श्वान", "मृग"],
-    मार्जार: ["मार्जार", "गाय"],
-    मूषक: ["मूषक", "गज"],
-    गाय: ["गाय", "व्याघ्र"],
-    महिष: ["महिष", "अश्व"],
-    व्याघ्र: ["व्याघ्र", "गाय"],
-    मृग: ["मृग", "श्वान"],
-    वानर: ["वानर", "मेष"],
-    नकुल: ["नकुल", "सर्प"],
-    सिंह: ["सिंह", "गज"],
+    अश्व: ["महिष"],
+    गज: ["सिंह"],
+    मेष: ["वानर"],
+    सर्प: ["नकुल"],
+    श्वान: ["मृग"],
+    मार्जार: ["गाय"],
+    मूषक: ["गज"],
+    गाय: ["व्याघ्र"],
+    महिष: ["अश्व"],
+    व्याघ्र: ["गाय"],
+    मृग: ["श्वान"],
+    वानर: ["मेष"],
+    नकुल: ["सर्प"],
+    सिंह: ["गज"],
   };
   if (friendly[nak1.yoni]?.includes(nak2.yoni)) return 3;
   const hostile: Record<string, string[]> = {
@@ -506,8 +500,11 @@ interface PersonData {
 
 interface AstroProfile {
   rashi: string;
+  rashiIndex: number;
   nakshatra: string;
   nakshatraIndex: number;
+  nakshatraPada: number;
+  moonDegree: string;
   lagna: string;
   lord: string;
   element: string;
@@ -518,22 +515,45 @@ interface AstroProfile {
 }
 
 function computeProfile(person: PersonData): AstroProfile {
-  const nakIdx = getNakshatraFromDate(person.dob);
-  const nak = NAKSHATRAS[nakIdx];
-  const rashi = getRashiFromDate(person.dob, person.tob);
-  const lagna = getLagna(person.dob, person.tob);
-  const mangal = getMangalDosha(rashi, nakIdx);
+  // Calculate accurate Moon sidereal longitude
+  const moonLong = getMoonSiderealLongitude(person.dob, person.tob);
+
+  // Rashi from Moon longitude (each rashi = 30°)
+  const rashiIndex = Math.floor(moonLong / 30) % 12;
+  const rashi = RASHIS[rashiIndex];
+
+  // Nakshatra from Moon longitude (each nakshatra = 13°20' = 13.3333°)
+  const nakshatraIndex = Math.floor(moonLong / (360 / 27)) % 27;
+  const pada = Math.floor((moonLong % (360 / 27)) / (360 / 108)) + 1; // 4 padas per nakshatra
+  const nak = NAKSHATRAS[nakshatraIndex];
+
+  // Lagna calculation
+  const lagnaIndex = getLagnaIndex(person.dob, person.tob);
+  const lagna = RASHIS[lagnaIndex];
+
+  // Moon degree within rashi
+  const degInRashi = moonLong % 30;
+  const degStr = `${Math.floor(degInRashi)}°${Math.floor((degInRashi % 1) * 60)}'`;
+
+  // Mangal dosha check: Mars is the lord of Mesha and Vrischika
+  // For simplified check, we use rashi-based Mangal dosha rule
+  const mangalDoshaRashis = ["मेष", "वृश्चिक", "कर्क", "कन्या", "मकर", "कुंभ"];
+  const mangalDosha = mangalDoshaRashis.includes(lagna);
+
   return {
     rashi,
+    rashiIndex,
     nakshatra: nak.name,
-    nakshatraIndex: nakIdx,
+    nakshatraIndex,
+    nakshatraPada: pada,
+    moonDegree: degStr,
     lagna,
     lord: RASHI_LORDS[rashi] || "—",
     element: RASHI_ELEMENT[rashi] || "—",
     varna: RASHI_VARNA[rashi] || "—",
     gana: nak.gana,
     nadi: nak.nadi,
-    mangalDosha: mangal,
+    mangalDosha,
   };
 }
 
@@ -659,14 +679,16 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
       "═══════════════════════════════",
       "",
       `🤵 वर: ${var_.name || "—"}`,
-      `   राशि: ${result.varProfile.rashi} | नक्षत्र: ${result.varProfile.nakshatra}`,
-      `   लग्न: ${result.varProfile.lagna} | ग्रह: ${result.varProfile.lord}`,
+      `   राशि: ${result.varProfile.rashi} (${result.varProfile.moonDegree})`,
+      `   नक्षत्र: ${result.varProfile.nakshatra} पाद ${result.varProfile.nakshatraPada}`,
+      `   लग्न: ${result.varProfile.lagna} | स्वामी: ${result.varProfile.lord}`,
       `   गण: ${result.varProfile.gana} | नाड़ी: ${result.varProfile.nadi}`,
       `   मंगल दोष: ${result.varProfile.mangalDosha ? "हाँ" : "नहीं"}`,
       "",
       `👰 वधु: ${vadhu.name || "—"}`,
-      `   राशि: ${result.vadhuProfile.rashi} | नक्षत्र: ${result.vadhuProfile.nakshatra}`,
-      `   लग्न: ${result.vadhuProfile.lagna} | ग्रह: ${result.vadhuProfile.lord}`,
+      `   राशि: ${result.vadhuProfile.rashi} (${result.vadhuProfile.moonDegree})`,
+      `   नक्षत्र: ${result.vadhuProfile.nakshatra} पाद ${result.vadhuProfile.nakshatraPada}`,
+      `   लग्न: ${result.vadhuProfile.lagna} | स्वामी: ${result.vadhuProfile.lord}`,
       `   गण: ${result.vadhuProfile.gana} | नाड़ी: ${result.vadhuProfile.nadi}`,
       `   मंगल दोष: ${result.vadhuProfile.mangalDosha ? "हाँ" : "नहीं"}`,
       "",
@@ -758,6 +780,9 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
             वर-वधु ज्योतिष विवरण एवं गुण मिलान
           </p>
           <p className="devanagari text-white/40 text-xs mt-1">
+            लाहिड़ी अयनांश आधारित सटीक गणना
+          </p>
+          <p className="devanagari text-white/30 text-xs">
             ज्योतिषी उमेश जी | +91 9654123331
           </p>
         </div>
@@ -820,7 +845,7 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
               </div>
               <div>
                 <p className="devanagari text-xs text-white/50 block mb-1">
-                  जन्म समय
+                  जन्म समय (IST)
                 </p>
                 <input
                   type="time"
@@ -915,7 +940,7 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
               </div>
               <div>
                 <p className="devanagari text-xs text-white/50 block mb-1">
-                  जन्म समय
+                  जन्म समय (IST)
                 </p>
                 <input
                   type="time"
@@ -953,6 +978,19 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Note about accuracy */}
+        <div
+          className="rounded-xl p-3 mb-6 text-center"
+          style={{
+            background: "rgba(245,215,110,0.05)",
+            border: "1px solid rgba(245,215,110,0.15)",
+          }}
+        >
+          <p className="devanagari text-white/40 text-xs">
+            ⚡ लाहिड़ी अयनांश आधारित सटीक चंद्र राशि गणना | जन्म समय IST में भरें
+          </p>
         </div>
 
         {/* Calculate Button */}
@@ -1008,22 +1046,24 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
 
             {/* Astrological Profiles */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {[
-                {
-                  label: "🤵 वर का ज्योतिष विवरण",
-                  profile: result.varProfile,
-                  name: var_.name,
-                  color: "#a78bfa",
-                  border: "rgba(167,139,250,0.4)",
-                },
-                {
-                  label: "👰 वधु का ज्योतिष विवरण",
-                  profile: result.vadhuProfile,
-                  name: vadhu.name,
-                  color: "#f472b6",
-                  border: "rgba(244,114,182,0.4)",
-                },
-              ].map(({ label, profile, name, color, border }) => (
+              {(
+                [
+                  {
+                    label: "🤵 वर का ज्योतिष विवरण",
+                    profile: result.varProfile,
+                    name: var_.name,
+                    color: "#a78bfa",
+                    border: "rgba(167,139,250,0.4)",
+                  },
+                  {
+                    label: "👰 वधु का ज्योतिष विवरण",
+                    profile: result.vadhuProfile,
+                    name: vadhu.name,
+                    color: "#f472b6",
+                    border: "rgba(244,114,182,0.4)",
+                  },
+                ] as const
+              ).map(({ label, profile, name, color, border }) => (
                 <div
                   key={label}
                   className="rounded-2xl p-5"
@@ -1045,14 +1085,18 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
                   )}
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {[
-                      ["राशि", profile.rashi],
-                      ["नक्षत्र", profile.nakshatra],
-                      ["लग्न", profile.lagna],
-                      ["स्वामी ग्रह", profile.lord],
-                      ["तत्व", profile.element],
-                      ["वर्ण", profile.varna],
-                      ["गण", profile.gana],
-                      ["नाड़ी", profile.nadi],
+                      ["🌙 राशि (जन्म)", profile.rashi],
+                      [
+                        "⭐ नक्षत्र",
+                        `${profile.nakshatra} (पाद ${profile.nakshatraPada})`,
+                      ],
+                      ["🔭 चंद्र स्थान", profile.moonDegree],
+                      ["🏠 लग्न", profile.lagna],
+                      ["👑 स्वामी ग्रह", profile.lord],
+                      ["🌿 तत्व", profile.element],
+                      ["🔱 वर्ण", profile.varna],
+                      ["✨ गण", profile.gana],
+                      ["💧 नाड़ी", profile.nadi],
                     ].map(([k, v]) => (
                       <div
                         key={k}
@@ -1062,7 +1106,7 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
                         <div className="devanagari text-white/40 text-xs">
                           {k}
                         </div>
-                        <div className="devanagari text-white font-semibold">
+                        <div className="devanagari text-white font-semibold text-xs">
                           {v}
                         </div>
                       </div>
@@ -1074,7 +1118,11 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
                       background: profile.mangalDosha
                         ? "rgba(239,68,68,0.15)"
                         : "rgba(34,197,94,0.1)",
-                      border: `1px solid ${profile.mangalDosha ? "rgba(239,68,68,0.4)" : "rgba(34,197,94,0.3)"}`,
+                      border: `1px solid ${
+                        profile.mangalDosha
+                          ? "rgba(239,68,68,0.4)"
+                          : "rgba(34,197,94,0.3)"
+                      }`,
                     }}
                   >
                     <span
@@ -1110,7 +1158,6 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
                 </h3>
               </div>
               <div style={{ background: "rgba(10,15,40,0.8)" }}>
-                {/* Header */}
                 <div
                   className="grid grid-cols-4 gap-0 px-4 py-2 text-xs font-semibold"
                   style={{
@@ -1161,7 +1208,6 @@ export function KundaliMilan({ onBack }: KundaliMilanProps) {
                     </div>
                   );
                 })}
-                {/* Total row */}
                 <div
                   className="grid grid-cols-4 gap-0 px-4 py-3"
                   style={{
