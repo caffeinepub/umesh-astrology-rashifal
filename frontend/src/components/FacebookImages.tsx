@@ -6,9 +6,14 @@ interface FacebookImagesProps {
 
 const images = [
   {
-    title: "नवग्रह शांति उपाय — ज्योतिषी उमेश जी",
-    src: "/assets/generated/navagrah_shanti_with_photo.dim_1080x1080.jpg",
-    filename: "navagrah_shanti_with_photo.jpg",
+    title: "शुद्ध राशि रत्न — Facebook Ad",
+    src: "/assets/generated/rashi_ratna_facebook_ad.dim_1080x1080.jpg",
+    filename: "rashi_ratna_facebook_ad.jpg",
+  },
+  {
+    title: "नवग्रह शांति उपाय",
+    src: "/assets/generated/jyotish_upay_navgrah.dim_1080x1080.jpg",
+    filename: "jyotish_upay_navgrah.jpg",
   },
   {
     title: "भगवान शिव — नंदी, गंगा, कैलाश",
